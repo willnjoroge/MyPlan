@@ -1,0 +1,73 @@
+.content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 80vh;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.objectives-shuffle {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400px;
+  width: 700px;
+}
+
+.objective-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.slides {
+  display: flex;
+  flex-direction: column;
+  height: 80%;
+  /* position: relative; */
+}
+
+.slide {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 0;
+  width: 100%;
+  visibility: hidden;
+  /* position: absolute; */
+}
+
+.slide.active {
+  visibility: visible;
+  height: 500px;
+}
+
+.tiles {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  width: 100%;
+  height: 20%;
+}
+
+.tile {
+  height: 10%;
+  padding: 10px;
+  margin: 1rem;
+  border: 2px solid lightblue;
+  border-radius: 5%;
+  cursor: pointer;
+  margin-top: 100px;
+}
+
+.arrow {
+  margin: 0 1rem;
+}
+
+h1.title {
+  padding: 10px;
+  border: none;
+  border-bottom: 2px solid lightblue;
+}

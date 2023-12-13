@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="/styles/nav.css" />
+    <title>Home</title>
+  </head>
+  <body>
+    <nav class="nav">
+      <div class="container">
+        <h1 class="logo"><a href="/pages/home/home.html">My Plan</a></h1>
+        <ul>
+          <li><a href="/pages/home/home.html">Home</a></li>
+          <li>
+            <a href="/pages/objectives/objectives.html" class="current"
+              >Objectives</a
+            >
+          </li>
+          <li>
+            <a href="/pages/finance/finance.html">Finance</a>
+          </li>
+          <li><a href="/pages/account/account.html">Account</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="content">
+      <div class="objectives year">
+        <h2>Year Objectives</h2>
+        <div class="year-list"></div>
+        <button class="btn add">Add Objective</button>
+      </div>
+      <div class="objectives month">
+        <h2>Month Objectives</h2>
+        <div class="month-list"></div>
+        <button class="btn add">Add Objective</button>
+      </div>
+      <div class="objectives week">
+        <h2>Week Objectives</h2>
+        <div class="week-list"></div>
+        <button class="btn add">Add Objective</button>
+      </div>
+
+      <div class="submit">
+        <button class="btn submit">Save</button>
+      </div>
+    </div>
+    <script src="script.js"></script>
+  </body>
+</html>

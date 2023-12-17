@@ -40,7 +40,7 @@ function createSlide(title, type, objectives = [""], active = false) {
   </div>
   <div class="obj-container ${type}">
   </div>
-  <button class="add" hidden>Add Objective</button>
+  <button class="btn add" hidden>Add Objective</button>
   `;
 
   const objDiv = slide.querySelector(".obj-container");

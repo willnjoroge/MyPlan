@@ -49,7 +49,7 @@ function createSlide(title, type, objectives = [""], active = false) {
       createObjective(obj, objDiv);
     });
   } else {
-    createObjective("Insert objective here....", objDiv);
+    createObjective("Click Edit to add objective....", objDiv);
   }
 
   slidesContainer.appendChild(slide);

@@ -44,9 +44,13 @@ function createSlide(title, type, objectives = [""], active = false) {
   `;
 
   const objDiv = slide.querySelector(".obj-container");
-  objectives.forEach((obj) => {
-    createObjective(obj, objDiv);
-  });
+  if (objectives) {
+    objectives.forEach((obj) => {
+      createObjective(obj, objDiv);
+    });
+  } else {
+    createObjective("Insert objective here....", objDiv);
+  }
 
   slidesContainer.appendChild(slide);
 

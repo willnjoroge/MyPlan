@@ -16,7 +16,7 @@ button {
   cursor: pointer;
 }
 
-.btn.delete {
+.btn {
   height: 10px;
   background-color: white;
   padding: 0.75rem;
@@ -61,13 +61,7 @@ button {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 0;
   width: 100%;
-  visibility: hidden;
-}
-
-.slide.active {
-  visibility: visible;
 }
 
 .obj-container > .obj input.objective {
@@ -137,12 +131,16 @@ button {
   opacity: 0.75;
 }
 
-.arrow {
-  margin: 0 1rem;
-}
-
 h1.title {
   padding: 10px;
   border: none;
   border-bottom: 2px solid lightblue;
+}
+
+.subtitle-container {
+  display: flex;
+}
+
+.subtitle {
+  margin: 0rem 1rem;
 }

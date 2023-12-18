@@ -1,51 +1,128 @@
-const yearObjectives = JSON.parse(
-  window.localStorage.getItem("yearObjectives")
-);
-const monthObjectives = JSON.parse(
-  window.localStorage.getItem("monthObjectives")
-);
-const weekObjectives = JSON.parse(
-  window.localStorage.getItem("weekObjectives")
-);
-
 const slidesContainer = document.querySelector(".slides");
 const tilesContainer = document.querySelector(".tiles");
-const title = document.querySelector(".title");
 
-updateDashboard();
+let currentSlide = "yearObjectives";
+let currentDate = new Date();
 
-function updateDashboard() {
-  createSlide("Year Objectives", "yObjs", yearObjectives, true);
-  createSlide("Month Objectives", "mObjs", monthObjectives);
-  createSlide("Week Objectives", "wObjs", weekObjectives);
+function getWeekOfMonth(date) {
+  let adjustedDate = date.getDate() + date.getDay();
+  let prefixes = ["0", "1", "2", "3", "4", "5"];
+  return parseInt(prefixes[0 | (adjustedDate / 7)]) + 1;
 }
 
-function createSlide(title, type, objectives = [""], active = false) {
+loadContent();
+
+function loadContent() {
+  createTiles("Year Objectives", "yearObjectives");
+  createTiles("Month Objectives", "monthObjectives");
+  createTiles("Week Objectives", "weekObjectives");
+  setActiveSlide(currentSlide, currentDate);
+}
+
+function createTiles(title, type) {
+  const tile = document.createElement("div");
+  tile.classList.add("tile");
+  tile.classList.add(`${type}`);
+
+  const objTitle = document.createElement("h4");
+  objTitle.innerText = title;
+
+  tile.appendChild(objTitle);
+
+  tile.addEventListener("click", () => {
+    const currentDate = new Date();
+
+    setActiveSlide(type, currentDate);
+  });
+
+  tilesContainer.appendChild(tile);
+}
+
+function setTitle(type) {
+  switch (type) {
+    case "yearObjectives":
+      return "Year Objectives";
+    case "monthObjectives":
+      return "Month Objectives";
+    case "weekObjectives":
+      return "Week Objectives";
+  }
+}
+
+function getIndexChoice(type, date) {
+  let index = "";
+  switch (type) {
+    case "yearObjectives":
+      index = date.getFullYear();
+      break;
+    case "monthObjectives":
+      index = date.toLocaleString("default", {
+        month: "long",
+        year: "2-digit",
+      });
+      break;
+    case "weekObjectives":
+      index =
+        "Week " +
+        getWeekOfMonth(date) +
+        " - " +
+        date.toLocaleString("default", {
+          month: "long",
+          year: "2-digit",
+        });
+      break;
+  }
+  return index;
+}
+
+function setActiveSlide(type, date) {
+  const slide = document.querySelector(".slide");
+  const tiles = document.querySelectorAll(".tile");
+  if (slide) slide.remove();
+
+  tiles.forEach((tile) => tile.classList.remove("active"));
+
+  const newObjectives = findObjectives(type, date);
+  createSlide(type, type, newObjectives);
+  const tile = document.querySelector(`.tile.${type}`);
+  tile.classList.add("active");
+  currentSlide = type;
+  currentDate = date;
+}
+
+function findObjectives(type, scope) {
+  const index = getIndexChoice(type, scope);
+  let objectives = [""];
+  if (window.localStorage.getItem(type)) {
+    objectives = JSON.parse(window.localStorage.getItem(type));
+  }
+  return { objs: objectives[index], subtitle: index };
+}
+
+function createSlide(title, type, objectives) {
   const slide = document.createElement("div");
   slide.classList.add("slide");
   slide.classList.add(type);
-  if (active) {
-    slide.classList.add("active");
-    slide.style.height = "100%";
-  } else {
-    slide.style.visibility = "hidden";
-    slide.style.height = "0";
-  }
 
   slide.innerHTML = `
   <div class="slide-title ${type}">
-    <h2>${title}</h2>
+    <h2>${setTitle(type)}</h2>
     <button class="edit">Edit</button>
     <button class="save" hidden>Save</button>
   </div>
-  <div class="obj-container ${type}">
+  <div class="subtitle-container">
+    <button class="btn left">Left</button>
+    <h3 class="subtitle">${objectives.subtitle}</h3>
+    <button class="btn right">Right</button>
   </div>
+
+  <div class="obj-container ${type}"></div>
   <button class="btn add" hidden>Add Objective</button>
   `;
 
   const objDiv = slide.querySelector(".obj-container");
-  if (objectives) {
-    objectives.forEach((obj) => {
+  if (objectives.objs) {
+    objectives.objs.forEach((obj) => {
       createObjective(obj, objDiv);
     });
   } else {
@@ -55,7 +132,6 @@ function createSlide(title, type, objectives = [""], active = false) {
   slidesContainer.appendChild(slide);
 
   addEventListeners(slide, type);
-  createTile(title, type, active);
 }
 
 function createObjective(obj = "", objDiv, enabled = false) {
@@ -80,7 +156,8 @@ function addEventListeners(slide, type) {
   const editBtn = document.querySelector(`.${type} button.edit`);
   const saveBtn = document.querySelector(`.${type} button.save`);
   const addBtn = document.querySelector(`.${type} .add`);
-  addBtn.innerText;
+  const leftBtn = document.querySelector(`.${type} .left`);
+  const rightBtn = document.querySelector(`.${type} .right`);
 
   editBtn.addEventListener("click", () => {
     toggleEditing(true, slide, editBtn, saveBtn);
@@ -96,26 +173,14 @@ function addEventListeners(slide, type) {
     console.log(objDiv);
     createObjective("", objDiv, true);
   });
-}
 
-function createTile(title, type, active = false) {
-  const tile = document.createElement("div");
-  tile.classList.add("tile");
-  tile.classList.add(`${type}`);
-  if (active) {
-    tile.classList.add("active");
-  }
-
-  const objTitle = document.createElement("h4");
-  objTitle.innerText = title;
-
-  tile.appendChild(objTitle);
-
-  tile.addEventListener("click", () => {
-    setActiveSlide(type);
+  leftBtn.addEventListener("click", () => {
+    changeSlide("left");
   });
 
-  tilesContainer.appendChild(tile);
+  rightBtn.addEventListener("click", () => {
+    changeSlide("right");
+  });
 }
 
 function toggleEditing(enable, slide, editBtn, saveBtn) {
@@ -140,43 +205,48 @@ function toggleEditing(enable, slide, editBtn, saveBtn) {
   }
 }
 
-function setActiveSlide(type) {
-  const slides = document.querySelectorAll(".slide");
-  const tiles = document.querySelectorAll(".tile");
-  tiles.forEach((tile) => tile.classList.remove("active"));
-  slides.forEach((slide) => {
-    slide.classList.remove("active");
-    slide.style.visibility = "hidden";
-    slide.style.height = "0";
-  });
-  const slide = document.querySelector(`.slide.${type}`);
-  const tile = document.querySelector(`.tile.${type}`);
-  tile.classList.add("active");
-  slide.classList.add("active");
-
-  slide.style.visibility = "visible";
-  slide.style.height = "100%";
+function changeSlide(direction) {
+  switch (currentSlide) {
+    case "yearObjectives":
+      if (direction === "left") {
+        currentDate.setFullYear(currentDate.getFullYear() - 1);
+      } else {
+        currentDate.setFullYear(currentDate.getFullYear() + 1);
+      }
+      break;
+    case "monthObjectives":
+      if (direction === "left") {
+        currentDate.setMonth(currentDate.getMonth() - 1);
+      } else {
+        currentDate.setMonth(currentDate.getMonth() + 1);
+      }
+      break;
+    case "weekObjectives":
+      if (direction === "left") {
+        currentDate.setDate(currentDate.getDate() - 7);
+      } else {
+        currentDate.setDate(currentDate.getDate() + 7);
+      }
+      break;
+  }
+  setActiveSlide(currentSlide, currentDate);
 }
 
 function updateStorage() {
-  const yearObjectives = document.querySelectorAll(".yObjs input");
-  const monthObjectives = document.querySelectorAll(".mObjs input");
-  const weekObjectives = document.querySelectorAll(".wObjs input");
-
-  let yearObjs = [];
-  let monthObjs = [];
-  let weekObjs = [];
-  yearObjectives.forEach((obj) => {
-    yearObjs.push(obj.value);
+  let updatedObjectives = [];
+  const dirtyObjectives = document.querySelectorAll(`.${currentSlide} input`);
+  dirtyObjectives.forEach((obj) => {
+    updatedObjectives.push(obj.value);
   });
-  monthObjectives.forEach((obj) => {
-    monthObjs.push(obj.value);
-  });
-  weekObjectives.forEach((obj) => {
-    weekObjs.push(obj.value);
-  });
-
-  window.localStorage.setItem("yearObjectives", JSON.stringify(yearObjs));
-  window.localStorage.setItem("monthObjectives", JSON.stringify(monthObjs));
-  window.localStorage.setItem("weekObjectives", JSON.stringify(weekObjs));
+  const currentStorage = JSON.parse(window.localStorage.getItem(currentSlide));
+  const title = document.querySelector(".subtitle");
+  let updatedStorage;
+  if (currentStorage) {
+    currentStorage[title.innerText] = updatedObjectives;
+    updatedStorage = currentStorage;
+  } else {
+    updatedStorage = {};
+    updatedStorage[title.innerText] = updatedObjectives;
+  }
+  window.localStorage.setItem(currentSlide, JSON.stringify(updatedStorage));
 }

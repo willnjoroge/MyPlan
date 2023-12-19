@@ -1,4 +1,3 @@
-const slidesContainer = document.querySelector(".slides");
 const tilesContainer = document.querySelector(".tiles");
 
 let currentSlide = "yearObjectives";
@@ -20,14 +19,11 @@ function loadContent() {
 }
 
 function createTiles(title, type) {
-  const tile = document.createElement("div");
+  const tile = document.createElement("button");
   tile.classList.add("tile");
   tile.classList.add(`${type}`);
 
-  const objTitle = document.createElement("h4");
-  objTitle.innerText = title;
-
-  tile.appendChild(objTitle);
+  tile.innerText = title;
 
   tile.addEventListener("click", () => {
     const currentDate = new Date();
@@ -76,14 +72,12 @@ function getIndexChoice(type, date) {
 }
 
 function setActiveSlide(type, date) {
-  const slide = document.querySelector(".slide");
   const tiles = document.querySelectorAll(".tile");
-  if (slide) slide.remove();
 
   tiles.forEach((tile) => tile.classList.remove("active"));
 
   const newObjectives = findObjectives(type, date);
-  createSlide(type, type, newObjectives);
+  createSlide(type, newObjectives);
   const tile = document.querySelector(`.tile.${type}`);
   tile.classList.add("active");
   currentSlide = type;
@@ -99,56 +93,79 @@ function findObjectives(type, scope) {
   return { objs: objectives[index], subtitle: index };
 }
 
-function createSlide(title, type, objectives) {
-  const slide = document.createElement("div");
-  slide.classList.add("slide");
+function createSlide(type, objectives) {
+  const slide = document.querySelector(".slide");
   slide.classList.add(type);
 
   slide.innerHTML = `
   <div class="slide-title ${type}">
     <h2>${setTitle(type)}</h2>
-    <button class="edit">Edit</button>
-    <button class="save" hidden>Save</button>
-  </div>
-  <div class="subtitle-container">
-    <button class="btn left">Left</button>
-    <h3 class="subtitle">${objectives.subtitle}</h3>
-    <button class="btn right">Right</button>
-  </div>
 
-  <div class="obj-container ${type}"></div>
-  <button class="btn add" hidden>Add Objective</button>
+  </div>
+  <div class="slide-content">
+    <div class="subtitle-container">
+      <button class="btn left"><i class="fa-solid fa-chevron-left"></i></button>
+      <h3 class="subtitle">${objectives.subtitle}</h3>
+      <button class="btn right"><i class="fa-solid fa-chevron-right"></i></button>
+    </div>
+
+    <div class="obj-actions">
+      <div class="obj-container ${type}"></div>
+      <button class="btn edit"><i class="fa-solid fa-pen-to-square"></i></button>
+      <button class="btn save" hidden><i class="fa-solid fa-floppy-disk"></i></button>
+    </div>
+    
+    <button class="btn add"><i class="fa-solid fa-plus"></i></button>
+  </div>
   `;
 
   const objDiv = slide.querySelector(".obj-container");
-  if (objectives.objs) {
+  const editBtn = slide.querySelector(".edit");
+  if (objectives.objs && objectives.objs.length > 0) {
     objectives.objs.forEach((obj) => {
-      createObjective(obj, objDiv);
+      createObjective(obj.value, objDiv, obj.checked);
     });
   } else {
-    createObjective("Click Edit to add objective....", objDiv);
+    editBtn.hidden = true;
   }
-
-  slidesContainer.appendChild(slide);
 
   addEventListeners(slide, type);
 }
 
-function createObjective(obj = "", objDiv, enabled = false) {
+function createObjective(obj = "", objDiv, checked = false, enabled = false) {
   const objective = document.createElement("div");
   objective.classList.add("obj");
   objective.innerHTML = `
+      <button class="btn check" ${enabled ? "hidden" : ""}><i class="${
+    checked ? "fa-solid" : "fa-regular"
+  } fa-circle-check fa-lg"></i></button>
       <input class="objective" ${enabled ? "" : "disabled"} type="text" />
       <button class="btn delete" ${
         enabled ? "" : "hidden"
-      } id="delete">X</button>`;
+      } id="delete"><i class="fa-solid fa-trash"></i></button>`;
   const objInput = objective.querySelector(".objective");
   objInput.value = obj;
+  if (checked) {
+    objInput.classList.add("checked");
+  }
+
+  if (enabled) {
+    objInput.placeholder = "Type here...";
+  }
+
   objDiv.appendChild(objective);
 
   const deleteBtn = objective.querySelector(".btn.delete");
   deleteBtn.addEventListener("click", () => {
     objective.remove();
+  });
+
+  const checkBtn = objective.querySelector(".btn i");
+  checkBtn.addEventListener("click", () => {
+    checkBtn.classList.toggle("fa-solid");
+    checkBtn.classList.toggle("fa-regular");
+    objInput.classList.toggle("checked");
+    updateStorage();
   });
 }
 
@@ -170,8 +187,8 @@ function addEventListeners(slide, type) {
 
   addBtn.addEventListener("click", () => {
     const objDiv = slide.querySelector(`.${type}.obj-container`);
-    console.log(objDiv);
-    createObjective("", objDiv, true);
+    toggleEditing(true, slide, editBtn, saveBtn);
+    createObjective("", objDiv, false, true);
   });
 
   leftBtn.addEventListener("click", () => {
@@ -187,21 +204,20 @@ function toggleEditing(enable, slide, editBtn, saveBtn) {
   const addBtns = slide.querySelectorAll("button.add");
   const deleteBtns = slide.querySelectorAll("button.delete");
   const inputs = slide.querySelectorAll("input");
+  const checkBtns = slide.querySelectorAll("button.check");
 
   if (enable) {
-    slide.classList.add("editing");
     editBtn.hidden = true;
     saveBtn.hidden = false;
     inputs.forEach((input) => (input.disabled = false));
-    addBtns.forEach((btn) => (btn.hidden = false));
     deleteBtns.forEach((btn) => (btn.hidden = false));
+    checkBtns.forEach((btn) => (btn.hidden = true));
   } else {
-    slide.classList.remove("editing");
     editBtn.hidden = false;
     saveBtn.hidden = true;
     inputs.forEach((input) => (input.disabled = true));
-    addBtns.forEach((btn) => (btn.hidden = true));
     deleteBtns.forEach((btn) => (btn.hidden = true));
+    checkBtns.forEach((btn) => (btn.hidden = false));
   }
 }
 
@@ -234,9 +250,16 @@ function changeSlide(direction) {
 
 function updateStorage() {
   let updatedObjectives = [];
-  const dirtyObjectives = document.querySelectorAll(`.${currentSlide} input`);
+  const dirtyObjectives = document.querySelectorAll(`.${currentSlide} .obj`);
   dirtyObjectives.forEach((obj) => {
-    updatedObjectives.push(obj.value);
+    const input = obj.querySelector("input");
+    if (input.value.length > 0 && input.classList.contains("checked")) {
+      updatedObjectives.push({ value: input.value, checked: true });
+    } else if (input.value.length > 0) {
+      updatedObjectives.push({ value: input.value, checked: false });
+    } else {
+      obj.remove();
+    }
   });
   const currentStorage = JSON.parse(window.localStorage.getItem(currentSlide));
   const title = document.querySelector(".subtitle");

@@ -201,7 +201,6 @@ function addEventListeners(slide, type) {
 }
 
 function toggleEditing(enable, slide, editBtn, saveBtn) {
-  const addBtns = slide.querySelectorAll("button.add");
   const deleteBtns = slide.querySelectorAll("button.delete");
   const inputs = slide.querySelectorAll("input");
   const checkBtns = slide.querySelectorAll("button.check");
@@ -259,6 +258,8 @@ function updateStorage() {
       updatedObjectives.push({ value: input.value, checked: false });
     } else {
       obj.remove();
+      const editBtn = document.querySelector(".btn.edit");
+      editBtn.remove();
     }
   });
   const currentStorage = JSON.parse(window.localStorage.getItem(currentSlide));
